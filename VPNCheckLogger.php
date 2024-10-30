@@ -15,7 +15,7 @@ class VPNCheckLogger {
         self::logIP($userIP, $vpnStatus, $revisionId);
 
         // 編集履歴のコメントにVPNステータスを追加
-        $summary = $recentChange->getComment() . " (IP: $userIP, VPN Status: $vpnStatus)";
+        $summary = $recentChange->getComment() . " (VPN Status: $vpnStatus)";
         $recentChange->setComment($summary);
 
         return true;
