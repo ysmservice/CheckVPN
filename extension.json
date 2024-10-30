@@ -2,6 +2,7 @@
     "name": "VPNCheckLogger",
     "version": "1.0",
     "author": "ysmservice",
+    "url": "https://ysmserv.com",
     "description": "ユーザーのIPアドレスを記録し、VPNかどうかを編集履歴に表示します。",
     "type": "other",
     "Hooks": {
