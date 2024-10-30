@@ -7,7 +7,6 @@
     "type": "other",
     "Hooks": {
         "RecentChange_save": "VPNCheckLogger::onRecentChangeSave",
-        "SkinTemplateOutputPageBeforeExec": "VPNCheckLogger::onSkinTemplateOutputPageBeforeExec",
         "LoadExtensionSchemaUpdates": "VPNCheckLogger::onLoadExtensionSchemaUpdates"
     },
     "AutoloadClasses": {
