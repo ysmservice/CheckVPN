@@ -11,5 +11,6 @@
     },
     "AutoloadClasses": {
         "VPNCheckLogger": "VPNCheckLogger.php"
-    }
+    },
+    "manifest_version": 2
 }
