@@ -14,9 +14,18 @@ class VPNCheckLogger {
         // IPアドレス、VPNステータス、リビジョンIDをデータベースに保存
         self::logIP($userIP, $vpnStatus, $revisionId);
 
-        // 編集履歴のコメントにVPNステータスを追加
-        $summary = $recentChange->getComment() . " (VPN Status: $vpnStatus)";
-        $recentChange->setComment($summary);
+        return true;
+    }
+
+    public static function onSkinTemplateOutputPageBeforeExec( &$skin, &$template ) {
+        // 編集履歴における各エントリのリビジョンIDに基づいてVPNステータスを取得
+        $revisionId = $skin->getContext()->getTitle()->getLatestRevID();
+        $vpnStatus = self::getVPNStatusByRevisionId($revisionId);
+
+        // VPN情報をユーザーツールリンク横に表示する
+        if ($vpnStatus) {
+            $template->data['usertoollinks'] .= Html::rawElement('span', ['class' => 'vpn-status'], "（VPN: $vpnStatus）");
+        }
 
         return true;
     }
@@ -29,7 +38,7 @@ class VPNCheckLogger {
             return "Unknown"; // エラー時は「Unknown」として扱う
         }
 
-        // VPNかどうかを判定するための正規表現
+        // VPNかどうかを判定し、VPNサービス名を返す
         if (preg_match('/<span>\s*(.*?)VPN/i', $response, $matches)) {
             return $matches[1] . " VPN"; // VPNサービス名を返す
         }
@@ -48,6 +57,21 @@ class VPNCheckLogger {
             ],
             __METHOD__
         );
+    }
+
+    private static function getVPNStatusByRevisionId($revisionId) {
+        $dbr = wfGetDB( DB_REPLICA );
+        $row = $dbr->selectRow(
+            'vpn_ip_log',
+            'vpn_status',
+            [ 'revision_id' => $revisionId ],
+            __METHOD__
+        );
+
+        if ($row) {
+            return $row->vpn_status;
+        }
+        return "Unknown";
     }
 
     public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
