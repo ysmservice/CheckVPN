@@ -4,28 +4,27 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 }
 
 class VPNCheckLogger {
-    public static function onRecentChangeSave( RecentChange $recentChange ) {
-        $userIP = $recentChange->getPerformer()->getName();
+    public static function onRecentChangeSave( $recentChange ) {
+        // ユーザーのIPアドレスを取得
+        $userIP = $recentChange->getAttribute('rc_ip');
+        if (!$userIP) {
+            return true; // IPが取得できない場合は処理を中断
+        }
+
         $vpnStatus = self::checkVPN($userIP);
 
         // リビジョンIDを取得
-        $revisionId = $recentChange->getRevision()->getId();
+        $revisionId = $recentChange->getAttribute('rc_this_oldid');
+        if (!$revisionId) {
+            return true; // リビジョンIDが取得できない場合は処理を中断
+        }
 
         // IPアドレス、VPNステータス、リビジョンIDをデータベースに保存
         self::logIP($userIP, $vpnStatus, $revisionId);
 
-        return true;
-    }
-
-    public static function onSkinTemplateOutputPageBeforeExec( &$skin, &$template ) {
-        // 編集履歴における各エントリのリビジョンIDに基づいてVPNステータスを取得
-        $revisionId = $skin->getContext()->getTitle()->getLatestRevID();
-        $vpnStatus = self::getVPNStatusByRevisionId($revisionId);
-
-        // VPN情報をユーザーツールリンク横に表示する
-        if ($vpnStatus) {
-            $template->data['usertoollinks'] .= Html::rawElement('span', ['class' => 'vpn-status'], "（VPN: $vpnStatus）");
-        }
+        // 編集履歴のコメントにVPNステータスを追加
+        $summary = $recentChange->getAttribute('rc_comment') . " (VPN Status: $vpnStatus)";
+        $recentChange->setAttribute('rc_comment', $summary);
 
         return true;
     }
@@ -57,21 +56,6 @@ class VPNCheckLogger {
             ],
             __METHOD__
         );
-    }
-
-    private static function getVPNStatusByRevisionId($revisionId) {
-        $dbr = wfGetDB( DB_REPLICA );
-        $row = $dbr->selectRow(
-            'vpn_ip_log',
-            'vpn_status',
-            [ 'revision_id' => $revisionId ],
-            __METHOD__
-        );
-
-        if ($row) {
-            return $row->vpn_status;
-        }
-        return "Unknown";
     }
 
     public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
