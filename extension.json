@@ -1,0 +1,14 @@
+{
+    "name": "VPNCheckLogger",
+    "version": "1.0",
+    "author": "ysmservice",
+    "description": "ユーザーのIPアドレスを記録し、VPNかどうかを編集履歴に表示します。",
+    "type": "other",
+    "Hooks": {
+        "RecentChange_save": "VPNCheckLogger::onRecentChangeSave",
+        "LoadExtensionSchemaUpdates": "VPNCheckLogger::onLoadExtensionSchemaUpdates"
+    },
+    "AutoloadClasses": {
+        "VPNCheckLogger": "VPNCheckLogger.php"
+    }
+}
